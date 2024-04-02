@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @DynamoDbBean
 public class Post {
 
-    private Long id;
+    private String id;
     private String title;
 
     private String author;
@@ -27,7 +27,7 @@ public class Post {
 
     }
 
-    public Post(Long id, String title, String author, String description, String avatar_image_url, String content, LocalDate date) {
+    public Post(String id, String title, String author, String description, String avatar_image_url, String content, LocalDate date) {
         this.id = id;
         this.title = title;
         this.author = author;
@@ -38,11 +38,11 @@ public class Post {
     }
 
     @DynamoDbPartitionKey
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

@@ -35,7 +35,8 @@ public class PostResource {
     @Path("/posts/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Post getPost(@PathParam("id") String id) {
-        return postService.get(Long.parseLong(id));
+        return postService.get(id);
+
     }
 
 
@@ -44,7 +45,7 @@ public class PostResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Post updatePost(@PathParam("id") String id, Post post) {
-        return postService.update(Long.parseLong(id), post);
+        return postService.update(id, post);
     }
 
 
@@ -61,9 +62,9 @@ public class PostResource {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-//            userId = req.getAuthorizer().getContextValue("userId");
+            userId = req.getAuthorizer().getContextValue("userId");
         }
-//        logger.info("Received in request context, userId = {}", userId);
+        logger.info("Received in request context, userId = {}", userId);
 //        String username = "anuran.datta@hotmail.com"; //Hardcoded dummy
 //        if (!StringUtil.isNullOrEmpty(userId)) {
 //            username = userId;
@@ -73,4 +74,10 @@ public class PostResource {
     }
 
 
+    @DELETE()
+    @Path("/posts/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public void deletePost(@PathParam("id") String id) {
+        postService.delete(id);
+    }
 }

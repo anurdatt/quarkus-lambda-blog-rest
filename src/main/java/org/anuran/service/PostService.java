@@ -35,12 +35,12 @@ public class PostService {
         return postTable.scan().items().stream().collect(Collectors.toList());
     }
 
-    public Post get(Long id) {
+    public Post get(String id) {
         Key partitionKey = Key.builder().partitionValue(id).build();
         return postTable.getItem(partitionKey);
     }
 
-    public Post update(Long id, Post post) {
+    public Post update(String id, Post post) {
         post.setId(id);
         UpdateItemEnhancedRequest request = UpdateItemEnhancedRequest
                 .builder(Post.class)
@@ -50,9 +50,18 @@ public class PostService {
 
     public Post add(Post post) {
 //        String id = UUID.randomUUID().toString();
-        Long id = new Date().getTime();
-        post.setId(id);
+        Long did = new Date().getTime();
+        String tid = post.getTitle()
+//                .replaceAll("[!@#'$%^&*]", "")
+                .replaceAll("[^a-zA-Z0-9 ]", "")
+                .replaceAll(" ", "-");
+        post.setId(tid + "-" + did);
         postTable.putItem(post);
         return post;
+    }
+
+    public Post delete(String id) {
+        Key partitionKey = Key.builder().partitionValue(id).build();
+        return postTable.deleteItem(partitionKey);
     }
 }

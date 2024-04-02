@@ -1,0 +1,355 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "quarkus-blog-rest",
+    "version" : "1.0"
+  },
+  "servers" : [ {
+    "url" : "https://tsw1pqoa9d.execute-api.us-east-1.amazonaws.com/{basePath}",
+    "variables" : {
+      "basePath" : {
+        "default" : "Prod"
+      }
+    }
+  } ],
+  "paths" : {
+    "/blog/{proxy+}" : {
+      "get" : {
+        "parameters" : [ {
+          "name" : "proxy",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "headers" : {
+              "Access-Control-Allow-Origin" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Max-Age" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Headers" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : { }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:161710045430:function:quarkus-blog-rest-QuarkusLambdaBlogRest-r4mcNcWA23MH/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseTemplates" : {
+                "application/json" : "#set($accessControlAllowCredentialsMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Credentials'))\r\n#set($accessControlAllowHeadersMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Headers'))\r\n#set($accessControlAllowMethodsMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Methods'))\r\n#set($accessControlAllowOriginMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Origin'))\r\n#set($accessControlMaxAgeMVH = $input.path('$.multiValueHeaders.Access-Control-Max-Age'))\r\n#set($context.responseOverride.header.Access-Control-Allow-Credentials=$accessControlAllowCredentialsMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Allow-Headers=$accessControlAllowHeadersMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Allow-Methods=$accessControlAllowMethodsMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Allow-Origin=$accessControlAllowOriginMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Max-Age=$accessControlMaxAgeMVH[0])\r\n$util.parseJson($input.json('$.body'))"
+              }
+            }
+          },
+          "requestParameters" : {
+            "integration.request.path.proxy" : "method.request.path.proxy"
+          },
+          "requestTemplates" : {
+            "application/json" : "##  See https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\r\n##  This template will pass through all parameters including path, querystring, header, stage variables, and context through to the integration endpoint via the body/payload\r\n#set($allParams = $input.params())\r\n#set($body = $util.escapeJavaScript($input.json('$')).replaceAll(\"\\\\'\",\"'\"))\r\n{\r\n  \"body\" : \"$body\",\r\n  \"httpMethod\" : \"$context.httpMethod\",\r\n  \"resource\" : \"$context.resourcePath\",\r\n  \"path\": \"/$util.escapeJavaScript($input.params().path.get('proxy'))\",\r\n  \"isBase64Encoded\": false,\r\n  ##\"params\" : {\r\n#foreach($type in $allParams.keySet())\r\n    #set($params = $allParams.get($type))\r\n#if($type == \"header\")\"headers\"#elseif($type == \"path\")\"pathParameters\"#else\"queryStringParameters\"#end : {\r\n    #foreach($paramName in $params.keySet())\r\n    #set($paramValue = $util.escapeJavaScript($params.get($paramName)).replaceAll(\"\\\\'\",\"'\"))\r\n\r\n    \"$paramName\" : \"$paramValue\"\r\n        #if($foreach.hasNext),#end\r\n    #end\r\n}\r\n#if($type == \"header\" || $type == \"querystring\"),\r\n#if($type == \"header\")\"multiValueHeaders\"#else\"multiValueQueryStringParameters\"#end : {\r\n    #foreach($paramName in $params.keySet())\r\n    #set($paramValue = $util.escapeJavaScript($params.get($paramName)).replaceAll(\"\\\\'\",\"'\"))\r\n    \"$paramName\" : [\"$paramValue\"]\r\n        #if($foreach.hasNext),#end\r\n    #end\r\n}\r\n#end\r\n##    #if($foreach.hasNext),#end\r\n,\r\n#end\r\n##},\r\n  \"stageVariables\": {\r\n    \"baz\": \"qux\"\r\n  },\r\n  \"requestContext\" : {\r\n    \"accountId\" : \"$context.identity.accountId\",\r\n    \"apiId\" : \"$context.apiId\",\r\n    \"httpMethod\" : \"$context.httpMethod\",\r\n    \"authorizer\" : {\r\n      #foreach($type in $context.authorizer.keySet())\r\n      \"$type\" : \"$util.escapeJavaScript($context.authorizer.get($type))\"\r\n       #if($foreach.hasNext),#end\r\n      #end\r\n    },\r\n    \"stage\" : \"$context.stage\",\r\n    \"requestId\" : \"$context.requestId\",\r\n    \"resourceId\" : \"$context.resourceId\",\r\n    \"resourcePath\" : \"$context.resourcePath\",\r\n    \"path\" : \"$context.resourcePath\",\r\n    \"protocol\": \"HTTP/1.1\"\r\n  }\r\n}\r\n"
+          },
+          "passthroughBehavior" : "when_no_templates",
+          "cacheNamespace" : "663onv",
+          "cacheKeyParameters" : [ "method.request.path.proxy" ],
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      },
+      "options" : {
+        "parameters" : [ {
+          "name" : "proxy",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "headers" : {
+              "Access-Control-Allow-Origin" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Headers" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : { }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseParameters" : {
+                "method.response.header.Access-Control-Allow-Credentials" : "'true'",
+                "method.response.header.Access-Control-Allow-Methods" : "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'",
+                "method.response.header.Access-Control-Allow-Headers" : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Origin" : "'*'"
+              }
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\"statusCode\": 200}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "type" : "mock"
+        }
+      },
+      "x-amazon-apigateway-any-method" : {
+        "parameters" : [ {
+          "name" : "proxy",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "headers" : {
+              "Access-Control-Allow-Origin" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Max-Age" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Headers" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : { }
+          },
+          "204" : {
+            "description" : "204 response",
+            "content" : { }
+          }
+        },
+        "security" : [ {
+          "CustomLambdaAuthorizer" : [ ]
+        } ],
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:161710045430:function:quarkus-blog-rest-QuarkusLambdaBlogRest-r4mcNcWA23MH/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseTemplates" : {
+                "application/json" : "#set($accessControlAllowCredentialsMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Credentials'))\r\n#set($accessControlAllowHeadersMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Headers'))\r\n#set($accessControlAllowMethodsMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Methods'))\r\n#set($accessControlAllowOriginMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Origin'))\r\n#set($accessControlMaxAgeMVH = $input.path('$.multiValueHeaders.Access-Control-Max-Age'))\r\n#set($context.responseOverride.header.Access-Control-Allow-Credentials=$accessControlAllowCredentialsMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Allow-Headers=$accessControlAllowHeadersMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Allow-Methods=$accessControlAllowMethodsMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Allow-Origin=$accessControlAllowOriginMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Max-Age=$accessControlMaxAgeMVH[0])\r\n$util.parseJson($input.json('$.body'))"
+              }
+            }
+          },
+          "requestParameters" : {
+            "integration.request.path.proxy" : "method.request.path.proxy"
+          },
+          "requestTemplates" : {
+            "application/json" : "##  See https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\r\n##  This template will pass through all parameters including path, querystring, header, stage variables, and context through to the integration endpoint via the body/payload\r\n#set($allParams = $input.params())\r\n#set($body = $util.escapeJavaScript($input.json('$')).replaceAll(\"\\\\'\",\"'\"))\r\n{\r\n  \"body\" : \"$body\",\r\n  \"httpMethod\" : \"$context.httpMethod\",\r\n  \"resource\" : \"$context.resourcePath\",\r\n  \"path\": \"/$util.escapeJavaScript($input.params().path.get('proxy'))\",\r\n  \"isBase64Encoded\": false,\r\n  ##\"params\" : {\r\n#foreach($type in $allParams.keySet())\r\n    #set($params = $allParams.get($type))\r\n#if($type == \"header\")\"headers\"#elseif($type == \"path\")\"pathParameters\"#else\"queryStringParameters\"#end : {\r\n    #foreach($paramName in $params.keySet())\r\n    #set($paramValue = $util.escapeJavaScript($params.get($paramName)).replaceAll(\"\\\\'\",\"'\"))\r\n\r\n    \"$paramName\" : \"$paramValue\"\r\n        #if($foreach.hasNext),#end\r\n    #end\r\n}\r\n#if($type == \"header\" || $type == \"querystring\"),\r\n#if($type == \"header\")\"multiValueHeaders\"#else\"multiValueQueryStringParameters\"#end : {\r\n    #foreach($paramName in $params.keySet())\r\n    #set($paramValue = $util.escapeJavaScript($params.get($paramName)).replaceAll(\"\\\\'\",\"'\"))\r\n    \"$paramName\" : [\"$paramValue\"]\r\n        #if($foreach.hasNext),#end\r\n    #end\r\n}\r\n#end\r\n##    #if($foreach.hasNext),#end\r\n,\r\n#end\r\n##},\r\n  \"stageVariables\": {\r\n    \"baz\": \"qux\"\r\n  },\r\n  \"requestContext\" : {\r\n    \"accountId\" : \"$context.identity.accountId\",\r\n    \"apiId\" : \"$context.apiId\",\r\n    \"httpMethod\" : \"$context.httpMethod\",\r\n    \"authorizer\" : {\r\n      #foreach($type in $context.authorizer.keySet())\r\n      \"$type\" : \"$util.escapeJavaScript($context.authorizer.get($type))\"\r\n       #if($foreach.hasNext),#end\r\n      #end\r\n    },\r\n    \"stage\" : \"$context.stage\",\r\n    \"requestId\" : \"$context.requestId\",\r\n    \"resourceId\" : \"$context.resourceId\",\r\n    \"resourcePath\" : \"$context.resourcePath\",\r\n    \"path\" : \"$context.resourcePath\",\r\n    \"protocol\": \"HTTP/1.1\"\r\n  }\r\n}\r\n"
+          },
+          "passthroughBehavior" : "when_no_templates",
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    },
+    "/securednotes/{proxy+}" : {
+      "options" : {
+        "parameters" : [ {
+          "name" : "proxy",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "headers" : {
+              "Access-Control-Allow-Origin" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Headers" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : { }
+          }
+        },
+        "x-amazon-apigateway-integration" : {
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseParameters" : {
+                "method.response.header.Access-Control-Allow-Credentials" : "'true'",
+                "method.response.header.Access-Control-Allow-Methods" : "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'",
+                "method.response.header.Access-Control-Allow-Headers" : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+                "method.response.header.Access-Control-Allow-Origin" : "'*'"
+              }
+            }
+          },
+          "requestTemplates" : {
+            "application/json" : "{\"statusCode\": 200}"
+          },
+          "passthroughBehavior" : "when_no_match",
+          "type" : "mock"
+        }
+      },
+      "x-amazon-apigateway-any-method" : {
+        "parameters" : [ {
+          "name" : "proxy",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "headers" : {
+              "Access-Control-Allow-Origin" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Credentials" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Max-Age" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Headers" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : { }
+          }
+        },
+        "security" : [ {
+          "CustomLambdaAuthorizer" : [ ]
+        } ],
+        "x-amazon-apigateway-integration" : {
+          "httpMethod" : "POST",
+          "uri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:161710045430:function:quarkus-rest-QuarkusAwsLambdaRest-5qEA3q4Mu8gZ/invocations",
+          "responses" : {
+            "default" : {
+              "statusCode" : "200",
+              "responseTemplates" : {
+                "application/json" : "#set($accessControlAllowCredentialsMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Credentials'))\r\n#set($accessControlAllowHeadersMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Headers'))\r\n#set($accessControlAllowMethodsMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Methods'))\r\n#set($accessControlAllowOriginMVH = $input.path('$.multiValueHeaders.Access-Control-Allow-Origin'))\r\n#set($accessControlMaxAgeMVH = $input.path('$.multiValueHeaders.Access-Control-Max-Age'))\r\n#set($context.responseOverride.header.Access-Control-Allow-Credentials=$accessControlAllowCredentialsMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Allow-Headers=$accessControlAllowHeadersMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Allow-Methods=$accessControlAllowMethodsMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Allow-Origin=$accessControlAllowOriginMVH[0])\r\n#set($context.responseOverride.header.Access-Control-Max-Age=$accessControlMaxAgeMVH[0])\r\n$util.parseJson($input.json('$.body'))"
+              }
+            }
+          },
+          "requestParameters" : {
+            "integration.request.path.proxy" : "method.request.path.proxy"
+          },
+          "requestTemplates" : {
+            "application/json" : "##  See https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html\r\n##  This template will pass through all parameters including path, querystring, header, stage variables, and context through to the integration endpoint via the body/payload\r\n#set($allParams = $input.params())\r\n#set($body = $util.escapeJavaScript($input.json('$')).replaceAll(\"\\\\'\",\"'\"))\r\n{\r\n  \"body\" : \"$body\",\r\n  \"httpMethod\" : \"$context.httpMethod\",\r\n  \"resource\" : \"$context.resourcePath\",\r\n  \"path\": \"/$util.escapeJavaScript($input.params().path.get('proxy'))\",\r\n  \"isBase64Encoded\": false,\r\n  ##\"params\" : {\r\n#foreach($type in $allParams.keySet())\r\n    #set($params = $allParams.get($type))\r\n#if($type == \"header\")\"headers\"#elseif($type == \"path\")\"pathParameters\"#else\"queryStringParameters\"#end : {\r\n    #foreach($paramName in $params.keySet())\r\n    #set($paramValue = $util.escapeJavaScript($params.get($paramName)).replaceAll(\"\\\\'\",\"'\"))\r\n\r\n    \"$paramName\" : \"$paramValue\"\r\n        #if($foreach.hasNext),#end\r\n    #end\r\n}\r\n#if($type == \"header\" || $type == \"querystring\"),\r\n#if($type == \"header\")\"multiValueHeaders\"#else\"multiValueQueryStringParameters\"#end : {\r\n    #foreach($paramName in $params.keySet())\r\n    #set($paramValue = $util.escapeJavaScript($params.get($paramName)).replaceAll(\"\\\\'\",\"'\"))\r\n    \"$paramName\" : [\"$paramValue\"]\r\n        #if($foreach.hasNext),#end\r\n    #end\r\n}\r\n#end\r\n##    #if($foreach.hasNext),#end\r\n,\r\n#end\r\n##},\r\n  \"stageVariables\": {\r\n    \"baz\": \"qux\"\r\n  },\r\n  \"requestContext\" : {\r\n    \"accountId\" : \"$context.identity.accountId\",\r\n    \"apiId\" : \"$context.apiId\",\r\n    \"httpMethod\" : \"$context.httpMethod\",\r\n    \"authorizer\" : {\r\n      #foreach($type in $context.authorizer.keySet())\r\n      \"$type\" : \"$util.escapeJavaScript($context.authorizer.get($type))\"\r\n       #if($foreach.hasNext),#end\r\n      #end\r\n    },\r\n    \"stage\" : \"$context.stage\",\r\n    \"requestId\" : \"$context.requestId\",\r\n    \"resourceId\" : \"$context.resourceId\",\r\n    \"resourcePath\" : \"$context.resourcePath\",\r\n    \"path\" : \"$context.resourcePath\",\r\n    \"protocol\": \"HTTP/1.1\"\r\n  }\r\n}\r\n"
+          },
+          "passthroughBehavior" : "when_no_templates",
+          "cacheNamespace" : "685909",
+          "cacheKeyParameters" : [ "method.request.path.proxy" ],
+          "contentHandling" : "CONVERT_TO_TEXT",
+          "type" : "aws"
+        }
+      }
+    }
+  },
+  "components" : {
+    "securitySchemes" : {
+      "CustomLambdaAuthorizer" : {
+        "type" : "apiKey",
+        "name" : "Authorization",
+        "in" : "header",
+        "x-amazon-apigateway-authtype" : "custom",
+        "x-amazon-apigateway-authorizer" : {
+          "authorizerUri" : "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:161710045430:function:quarkus-lambda-QuarkusAwsLambda-0qoETFw6t0qu/invocations",
+          "authorizerResultTtlInSeconds" : 300,
+          "identityValidationExpression" : "Bearer .*",
+          "type" : "token"
+        }
+      }
+    }
+  }
+}

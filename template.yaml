@@ -31,7 +31,7 @@
         TableName: Post
         PrimaryKey:
           Name: id
-          Type: Number
+          Type: String
 
   Outputs:
     QuarkusLambdaBlogRestApi:
