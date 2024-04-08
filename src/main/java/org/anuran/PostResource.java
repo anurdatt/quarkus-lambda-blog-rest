@@ -9,12 +9,17 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import org.anuran.model.Post;
+import org.anuran.model.PostTag;
+import org.anuran.model.Tag;
 import org.anuran.model.Test;
 import org.anuran.service.PostService;
+import org.anuran.service.PostTagService;
+import org.anuran.service.TagService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Path("/api")
 public class PostResource {
@@ -24,6 +29,12 @@ public class PostResource {
     @Inject
     PostService postService;
 
+    @Inject
+    TagService tagService;
+
+    @Inject
+    PostTagService postTagService;
+
     @GET()
     @Path("/posts")
     @Produces(MediaType.APPLICATION_JSON)
@@ -31,12 +42,39 @@ public class PostResource {
         return postService.findAll();
     }
 
-    @GET()
-    @Path("/posts/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Post getPost(@PathParam("id") String id) {
-        return postService.get(id);
+//    @GET()
+//    @Path("/posts/{id}")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    public Post getPost(@PathParam("id") String id) {
+//        return postService.get(id);
+//
+//    }
 
+    class PostWithTags {
+        Post post;
+        List<Tag> tags;
+
+        public PostWithTags(Post post, List<Tag> tags) {
+            this.post = post;
+            this.tags = tags;
+        }
+    }
+
+    @GET()
+    @Path("/posts/{id}/detail")
+    @Produces(MediaType.APPLICATION_JSON)
+    public PostWithTags getPost(@PathParam("id") String id) {
+        Post post = postService.get(id);
+
+        List<PostTag> postTags = postTagService.findByPostId(id);
+
+        List<String> tagIds = postTags.stream().map(PostTag::getTagId).collect(Collectors.toList());
+
+        List<Tag> tags = tagIds.stream().map(tagId -> tagService.get(id))
+                .filter(item -> item != null)
+                .collect(Collectors.toList());
+
+        return new PostWithTags(post, tags);
     }
 
 
