@@ -7,14 +7,13 @@ import org.anuran.model.Tag;
 import org.anuran.util.DDBUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.*;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -36,6 +35,17 @@ public class TagService {
         return tagTable.scan().items().stream().collect(Collectors.toList());
     }
 
+    public List<Tag> findBySourceApp(String sourceApp) {
+        return tagTable.scan(s -> s
+                        .consistentRead(true)
+                        .filterExpression(Expression.builder()
+                                .expression("sourceApp = :sourceApp")
+                                .expressionValues(Map.of(":sourceApp", AttributeValue.builder()
+                                        .s(sourceApp)
+                                        .build()))
+                                .build()))
+                .items().stream().collect(Collectors.toList());
+    }
     public Tag get(String id) {
         Key partitionKey = Key.builder().partitionValue(id).build();
         return tagTable.getItem(partitionKey);
@@ -59,6 +69,11 @@ public class TagService {
         tag.setId(tid + "-" + did);
         tagTable.putItem(tag);
         return tag;
+    }
+
+    public Tag addWithSourceApp(Tag tag, String sourceApp) {
+        tag.setSourceApp(sourceApp);
+        return add(tag);
     }
 
     public Tag delete(String id) {

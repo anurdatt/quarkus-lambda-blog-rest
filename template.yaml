@@ -17,6 +17,11 @@
           - AWSLambdaBasicExecutionRole
           - DynamoDBCrudPolicy:
               TableName: !Ref PostDDBTable
+          - DynamoDBCrudPolicy:
+              TableName: !Ref TagDDBTable
+          - DynamoDBCrudPolicy:
+              TableName: !Ref PostTagDDBTable
+
         Timeout: 150
         Events:
           GetResource:
@@ -32,6 +37,22 @@
         PrimaryKey:
           Name: id
           Type: String
+
+    TagDDBTable:
+      Type: AWS::Serverless::SimpleTable
+      Properties:
+        TableName: Tag
+        PrimaryKey:
+          Name: id
+          Type: String
+
+    PostTagDDBTable:
+      Type: AWS::Serverless::SimpleTable
+      Properties:
+        TableName: PostTag
+#        PrimaryKey:
+#          Name: id
+#          Type: String
 
   Outputs:
     QuarkusLambdaBlogRestApi:

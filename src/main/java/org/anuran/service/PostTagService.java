@@ -8,8 +8,12 @@ import org.anuran.util.DDBUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.enhanced.dynamodb.*;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DeleteItemEnhancedResponse;
+import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemResponse;
 
 import java.util.Date;
 import java.util.List;
@@ -47,7 +51,42 @@ public class PostTagService {
                 .items().stream().collect(Collectors.toList());
     }
 
+    public List<PostTag> findByTagId(String tagId) {
+        return postTagTable.scan(s -> s
+                        .consistentRead(true)
+                        .filterExpression(Expression.builder()
+                                .expression("tagId = :tagId")
+                                .expressionValues(Map.of(":tagId", AttributeValue.builder()
+                                        .s(tagId)
+                                        .build()))
+                                .build()))
+                .items().stream().collect(Collectors.toList());
+    }
+
+    public List<PostTag> findByPostIdAndTagId(String postId, String tagId) {
+        return postTagTable.scan(s -> s
+                        .consistentRead(true)
+                        .filterExpression(Expression.builder()
+                                .expression("postId = :postId and tagId = :tagId")
+                                .expressionValues(Map.of(":postId", AttributeValue.builder().s(postId).build(),
+                                        ":tagId", AttributeValue.builder().s(tagId).build()))
+                                .build()))
+                .items().stream().collect(Collectors.toList());
+    }
+
     public PostTag add(PostTag postTag) {
+        int pinx = postTag.getPostId().lastIndexOf("-");
+        String pidInclude = postTag.getPostId();
+        if(pinx > 0) {
+            pidInclude = postTag.getPostId().substring(0, pinx);
+        }
+        int tinx = postTag.getTagId().lastIndexOf("-");
+        String tidInclude = postTag.getTagId();
+        if(tinx > 0) {
+            tidInclude = postTag.getTagId().substring(0, tinx);
+        }
+        Long did = new Date().getTime();
+        postTag.setId(pidInclude + "-" + tidInclude + "-" + did);
         postTagTable.putItem(postTag);
         return postTag;
     }
@@ -59,6 +98,48 @@ public class PostTagService {
                         .expressionValues(Map.of(":postId", AttributeValue.builder()
                                 .s(postId).build()))
                         .build()));
+    }
+
+    public List<PostTag> deleteByTagId(String tagId) {
+//        return postTagTable.deleteItem(d -> d
+//                .conditionExpression(Expression.builder()
+//                        .expression("#tagId = :tagId")
+//                        .expressionNames(Map.of("#tagId", "tagId"))
+//                        .expressionValues(Map.of(":tagId", AttributeValue.builder()
+//                                .s(tagId).build()))
+//                        .build()));
+
+
+        ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder()
+                .filterExpression(Expression.builder()
+                        .expression("#tid = :tid")
+                        .expressionNames(Map.of("#tid", "tagId"))
+                        .expressionValues(Map.of(":tid", AttributeValue.builder().s(tagId).build()))
+                        .build())
+                .build();
+
+        List<PostTag> postTags = postTagTable.scan(scanEnhancedRequest).items()
+                .stream().collect(Collectors.toList());
+
+
+        postTags.stream().forEachOrdered(pt -> postTagTable.deleteItem(pt));
+
+        return postTags;
+//        DeleteItemEnhancedRequest deleteRequest = DeleteItemEnhancedRequest.builder()
+//                .conditionExpression(Expression.builder()
+//                        .expression("#tid = :tid")
+//                .expressionNames(Map.of("#tid", "tagId"))
+//                .expressionValues(Map.of(":tid", AttributeValue.builder().s(tagId).build()))
+//                .build()).build();
+
+//        return postTagTable.deleteItem(deleteRequest);
+
+
+    }
+
+    public PostTag delete(String id) {
+        Key partitionKey = Key.builder().partitionValue(id).build();
+        return postTagTable.deleteItem(partitionKey);
     }
 
 

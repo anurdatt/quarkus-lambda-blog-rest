@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.amazon.lambda.http.model.AwsProxyRequestContext;
 import io.quarkus.runtime.util.StringUtil;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Path("/api")
@@ -35,11 +37,49 @@ public class PostResource {
     @Inject
     PostTagService postTagService;
 
+
+    public static class PostWithTags {
+        Post post;
+        List<Tag> tags;
+
+        public PostWithTags() {
+        }
+
+        public PostWithTags(Post post, List<Tag> tags) {
+            this.post = post;
+            this.tags = tags;
+        }
+
+        public Post getPost() {
+            return post;
+        }
+
+        public void setPost(Post post) {
+            this.post = post;
+        }
+
+        public List<Tag> getTags() {
+            return tags;
+        }
+
+        public void setTags(List<Tag> tags) {
+            this.tags = tags;
+        }
+    }
+
     @GET()
     @Path("/posts")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Post> posts() {
-        return postService.findAll();
+    public List<PostWithTags> posts() {
+        List<Post> posts = postService.findAll();
+        return posts
+                .stream()
+                .map(p -> new PostWithTags(p, postTagService.findByPostId(p.getId())
+                        .stream()
+                        .map(PostTag::getTagId)
+                        .map(tid -> tagService.get(tid))
+                        .collect(Collectors.toList()))
+                ).collect(Collectors.toList());
     }
 
 //    @GET()
@@ -50,15 +90,6 @@ public class PostResource {
 //
 //    }
 
-    class PostWithTags {
-        Post post;
-        List<Tag> tags;
-
-        public PostWithTags(Post post, List<Tag> tags) {
-            this.post = post;
-            this.tags = tags;
-        }
-    }
 
     @GET()
     @Path("/posts/{id}/detail")
@@ -70,8 +101,8 @@ public class PostResource {
 
         List<String> tagIds = postTags.stream().map(PostTag::getTagId).collect(Collectors.toList());
 
-        List<Tag> tags = tagIds.stream().map(tagId -> tagService.get(id))
-                .filter(item -> item != null)
+        List<Tag> tags = tagIds.stream().map(tagId -> tagService.get(tagId))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         return new PostWithTags(post, tags);
@@ -82,8 +113,21 @@ public class PostResource {
     @Path("/posts/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Post updatePost(@PathParam("id") String id, Post post) {
-        return postService.update(id, post);
+    @Transactional()
+    public PostWithTags updatePost(@PathParam("id") String id, PostWithTags postWithTags) {
+        Post post = postService.update(id, postWithTags.post);
+        postWithTags.tags.stream().forEachOrdered(tag -> {
+            if (postTagService.findByPostIdAndTagId(post.getId(), tag.getId()).size() == 0) {
+                postTagService.add(new PostTag(post.getId(), tag.getId()));
+            }
+        });
+        postTagService.findByPostId(post.getId()).stream().forEachOrdered(postTag -> {
+            if(!postWithTags.tags.stream().anyMatch(tag -> tag.getId().equals(postTag.getTagId()))) {
+                logger.info("Going to DELETE <" + postTag.getTagId() + ">");
+                postTagService.delete(postTag.getId());
+            }
+        });
+        return new PostWithTags(postWithTags.post, postWithTags.tags);
     }
 
 
@@ -92,7 +136,8 @@ public class PostResource {
     @Path("/posts")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Post addPost(Post post, @Context AwsProxyRequestContext req) {
+    @Transactional()
+    public PostWithTags addPost(PostWithTags postWithTags, @Context AwsProxyRequestContext req) {
         String userId = "";
         if (req != null) {
             try {
@@ -100,7 +145,7 @@ public class PostResource {
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-            userId = req.getAuthorizer().getContextValue("userId");
+//            userId = req.getAuthorizer().getContextValue("userId");
         }
         logger.info("Received in request context, userId = {}", userId);
 //        String username = "anuran.datta@hotmail.com"; //Hardcoded dummy
@@ -108,7 +153,13 @@ public class PostResource {
 //            username = userId;
 //        }
 //        note.setUsername(username);
-        return postService.add(post);
+        Post post = postService.add(postWithTags.post);
+        postWithTags.tags
+                .stream()
+                .forEachOrdered(tag ->
+                        postTagService.add(new PostTag(post.getId(), tag.getId())));
+
+        return new PostWithTags(post, postWithTags.tags);
     }
 
 
