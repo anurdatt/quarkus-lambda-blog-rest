@@ -49,36 +49,36 @@ public class CommentService {
                 .items().stream().collect(Collectors.toList());
     }
 
-    public List<Comment> findBySourceId(String sourceId) {
+    public List<Comment> findBySourceId(Long sourceId) {
         return commentTable.scan(s -> s
                         .consistentRead(true)
                         .filterExpression(Expression.builder()
                                 .expression("sourceId = :sourceId")
                                 .expressionValues(Map.of(":sourceId", AttributeValue.builder()
-                                        .s(sourceId)
+                                        .n(String.valueOf(sourceId))
                                         .build()))
                                 .build()))
                 .items().stream().collect(Collectors.toList());
     }
 
-    public List<Comment> findByParentId(String parentId) {
+    public List<Comment> findByParentId(Long parentId) {
         return commentTable.scan(s -> s
                         .consistentRead(true)
                         .filterExpression(Expression.builder()
                                 .expression("parentId = :parentId")
                                 .expressionValues(Map.of(":parentId", AttributeValue.builder()
-                                        .s(parentId)
+                                        .n(String.valueOf(parentId))
                                         .build()))
                                 .build()))
                 .items().stream().collect(Collectors.toList());
     }
 
-    public Comment get(String id) {
+    public Comment get(Long id) {
         Key partitionKey = Key.builder().partitionValue(id).build();
         return commentTable.getItem(partitionKey);
     }
 
-    public Comment update(String id, Comment comment) {
+    public Comment update(Long id, Comment comment) {
         comment.setId(id);
         UpdateItemEnhancedRequest request = UpdateItemEnhancedRequest
                 .builder(Comment.class)
@@ -87,9 +87,9 @@ public class CommentService {
     }
 
     public Comment add(Comment comment) {
-        String id = UUID.randomUUID().toString();
+//        String id = UUID.randomUUID().toString();
         Long did = new Date().getTime();
-        comment.setId(id + "-" + did);
+        comment.setId(did);
         commentTable.putItem(comment);
         return comment;
     }
@@ -99,7 +99,7 @@ public class CommentService {
         return add(comment);
     }
 
-    public Comment delete(String id) {
+    public Comment delete(Long id) {
         Key partitionKey = Key.builder().partitionValue(id).build();
         return commentTable.deleteItem(partitionKey);
     }

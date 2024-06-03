@@ -38,7 +38,7 @@
         TableName: Post
         PrimaryKey:
           Name: id
-          Type: String
+          Type: Number
 
     TagDDBTable:
       Type: AWS::Serverless::SimpleTable
@@ -46,7 +46,7 @@
         TableName: Tag
         PrimaryKey:
           Name: id
-          Type: String
+          Type: Number
 
     PostTagDDBTable:
       Type: AWS::Serverless::SimpleTable
@@ -54,7 +54,7 @@
         TableName: PostTag
         PrimaryKey:
           Name: id
-          Type: String
+          Type: Number
 
     CommentDDBTable:
       Type: AWS::Serverless::SimpleTable
@@ -62,7 +62,7 @@
         TableName: Comment
         PrimaryKey:
           Name: id
-          Type: String
+          Type: Number
   Outputs:
     QuarkusLambdaBlogRestApi:
       Description: URL for application

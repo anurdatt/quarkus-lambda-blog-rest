@@ -6,14 +6,14 @@ import org.anuran.model.Post;
 import org.anuran.util.DDBUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.Key;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.*;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
@@ -35,12 +35,25 @@ public class PostService {
         return postTable.scan().items().stream().collect(Collectors.toList());
     }
 
-    public Post get(String id) {
+    public List<Post> findPostsByBlogUrl(String blogUrl) {
+
+        return postTable.scan(s -> s
+                        .consistentRead(true)
+                        .filterExpression(Expression.builder()
+                                .expression("blogUrl = :blogUrl")
+                                .expressionValues(Map.of(":blogUrl", AttributeValue.builder()
+                                        .s(blogUrl)
+                                        .build()))
+                                .build()))
+                .items().stream().collect(Collectors.toList());
+    }
+
+    public Post get(Long id) {
         Key partitionKey = Key.builder().partitionValue(id).build();
         return postTable.getItem(partitionKey);
     }
 
-    public Post update(String id, Post post) {
+    public Post update(Long id, Post post) {
         post.setId(id);
         UpdateItemEnhancedRequest request = UpdateItemEnhancedRequest
                 .builder(Post.class)
@@ -54,13 +67,16 @@ public class PostService {
         String tid = post.getTitle()
 //                .replaceAll("[!@#'$%^&*]", "")
                 .replaceAll("[^a-zA-Z0-9 ]", "")
-                .replaceAll(" ", "-");
-        post.setId(tid + "-" + did);
+                .replaceAll(" ", "-")
+                .toLowerCase(Locale.ROOT);
+        Long rid = Math.round(Math.random() * 100);
+        post.setId(did);
+        post.setBlogUrl(tid + "-" + rid);
         postTable.putItem(post);
         return post;
     }
 
-    public Post delete(String id) {
+    public Post delete(Long id) {
         Key partitionKey = Key.builder().partitionValue(id).build();
         return postTable.deleteItem(partitionKey);
     }

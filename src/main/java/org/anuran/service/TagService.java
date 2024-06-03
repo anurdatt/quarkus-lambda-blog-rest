@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -35,6 +36,19 @@ public class TagService {
         return tagTable.scan().items().stream().collect(Collectors.toList());
     }
 
+    public List<Tag> findTagsByTagUrl(String tagUrl) {
+
+        return tagTable.scan(s -> s
+                        .consistentRead(true)
+                        .filterExpression(Expression.builder()
+                                .expression("tagUrl = :tagUrl")
+                                .expressionValues(Map.of(":tagUrl", AttributeValue.builder()
+                                        .s(tagUrl)
+                                        .build()))
+                                .build()))
+                .items().stream().collect(Collectors.toList());
+    }
+
     public List<Tag> findBySourceApp(String sourceApp) {
         return tagTable.scan(s -> s
                         .consistentRead(true)
@@ -46,12 +60,12 @@ public class TagService {
                                 .build()))
                 .items().stream().collect(Collectors.toList());
     }
-    public Tag get(String id) {
+    public Tag get(Long id) {
         Key partitionKey = Key.builder().partitionValue(id).build();
         return tagTable.getItem(partitionKey);
     }
 
-    public Tag update(String id, Tag tag) {
+    public Tag update(Long id, Tag tag) {
         tag.setId(id);
         UpdateItemEnhancedRequest request = UpdateItemEnhancedRequest
                 .builder(Tag.class)
@@ -65,8 +79,11 @@ public class TagService {
         String tid = tag.getName()
 //                .replaceAll("[!@#'$%^&*]", "")
                 .replaceAll("[^a-zA-Z0-9 ]", "")
-                .replaceAll(" ", "-");
-        tag.setId(tid + "-" + did);
+                .replaceAll(" ", "-")
+                .toLowerCase(Locale.ROOT);
+        Long rid = Math.round(Math.random() * 100);
+        tag.setId(did);
+        tag.setTagUrl(tid + "-" + rid);
         tagTable.putItem(tag);
         return tag;
     }
@@ -76,7 +93,7 @@ public class TagService {
         return add(tag);
     }
 
-    public Tag delete(String id) {
+    public Tag delete(Long id) {
         Key partitionKey = Key.builder().partitionValue(id).build();
         return tagTable.deleteItem(partitionKey);
     }

@@ -13,12 +13,14 @@ import java.time.LocalDate;
 @DynamoDbBean
 public class Post {
 
-    private String id;
+    private Long id;
     private String title;
 
     private String author;
     private String description;
-    private String avatar_image_url;
+    private String avatarImageUrl;
+    private String blogUrl;
+
     private String content;
     private LocalDate date;
 
@@ -27,22 +29,25 @@ public class Post {
 
     }
 
-    public Post(String id, String title, String author, String description, String avatar_image_url, String content, LocalDate date) {
+    public Post(Long id, String title, String author, String description,
+                String avatarImageUrl, String blogUrl, String content,
+                LocalDate date) {
         this.id = id;
         this.title = title;
         this.author = author;
         this.description = description;
-        this.avatar_image_url = avatar_image_url;
+        this.avatarImageUrl = avatarImageUrl;
+        this.blogUrl = blogUrl;
         this.content = content;
         this.date = date;
     }
 
     @DynamoDbPartitionKey
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -70,12 +75,20 @@ public class Post {
         this.description = description;
     }
 
-    public String getAvatar_image_url() {
-        return avatar_image_url;
+    public String getAvatarImageUrl() {
+        return avatarImageUrl;
     }
 
-    public void setAvatar_image_url(String avatar_image_url) {
-        this.avatar_image_url = avatar_image_url;
+    public void setAvatarImageUrl(String avatarImageUrl) {
+        this.avatarImageUrl = avatarImageUrl;
+    }
+
+    public String getBlogUrl() {
+        return blogUrl;
+    }
+
+    public void setBlogUrl(String blogUrl) {
+        this.blogUrl = blogUrl;
     }
 
     public String getContent() {

@@ -13,12 +13,12 @@ import java.time.LocalDate;
 @DynamoDbBean
 public class Comment {
 
-    private String id;
+    private Long id;
     private String text;
     private String author;
-    private String sourceId;
+    private Long sourceId;
     private String sourceApp;
-    private String parentId;
+    private Long parentId;
     private LocalDate date;
 
 
@@ -26,19 +26,23 @@ public class Comment {
 
     }
 
-    public Comment(String id, String text, String author, LocalDate date) {
+    public Comment(Long id, String text, String author, Long sourceId,
+                   String sourceApp, Long parentId, LocalDate date) {
         this.id = id;
         this.text = text;
         this.author = author;
+        this.sourceId = sourceId;
+        this.sourceApp = sourceApp;
+        this.parentId = parentId;
         this.date = date;
     }
 
     @DynamoDbPartitionKey
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -58,11 +62,11 @@ public class Comment {
         this.author = author;
     }
 
-    public String getSourceId() {
+    public Long getSourceId() {
         return sourceId;
     }
 
-    public void setSourceId(String sourceId) {
+    public void setSourceId(Long sourceId) {
         this.sourceId = sourceId;
     }
 
@@ -74,11 +78,11 @@ public class Comment {
         this.sourceApp = sourceApp;
     }
 
-    public String getParentId() {
+    public Long getParentId() {
         return parentId;
     }
 
-    public void setParentId(String parentId) {
+    public void setParentId(Long parentId) {
         this.parentId = parentId;
     }
 

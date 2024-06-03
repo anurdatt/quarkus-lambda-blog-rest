@@ -7,46 +7,46 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 @RegisterForReflection
 @DynamoDbBean
 public class PostTag {
-    private String id;
-    private String postId;
-    private String tagId;
+    private Long id;
+    private Long postId;
+    private Long tagId;
 
     public PostTag() {
     }
 
-    public PostTag(String postId, String tagId) {
+    public PostTag(Long id, Long postId, Long tagId) {
+        this.id = id;
         this.postId = postId;
         this.tagId = tagId;
     }
 
-    public PostTag(String id, String postId, String tagId) {
-        this.id = id;
+    public PostTag(Long postId, Long tagId) {
         this.postId = postId;
         this.tagId = tagId;
     }
 
     @DynamoDbPartitionKey
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
-    public String getPostId() {
+    public Long getPostId() {
         return postId;
     }
 
-    public void setPostId(String postId) {
+    public void setPostId(Long postId) {
         this.postId = postId;
     }
 
-    public String getTagId() {
+    public Long getTagId() {
         return tagId;
     }
 
-    public void setTagId(String tagId) {
+    public void setTagId(Long tagId) {
         this.tagId = tagId;
     }
 }

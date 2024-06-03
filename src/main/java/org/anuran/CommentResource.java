@@ -59,7 +59,7 @@ public class CommentResource {
 //        return commentService.findAll();
             return commentService.findBySourceApp("BLOG");
         } else {
-            return commentService.findBySourceId(sourceId);
+            return commentService.findBySourceId(Long.parseLong(sourceId));
         }
     }
 
@@ -80,12 +80,12 @@ public class CommentResource {
 //            comments = commentService.findAll();
             comments = commentService.findBySourceApp("BLOG");
         } else {
-            comments = commentService.findBySourceId(sourceId);
+            comments = commentService.findBySourceId(Long.parseLong(sourceId));
         }
 
         List<Comment> topLevelComments = comments.stream()
                 .filter(Objects::nonNull)
-                .filter(comment -> comment.getParentId() == null || comment.getParentId().isEmpty())
+                .filter(comment -> comment.getParentId() == null || comment.getParentId() == 0)
                 .collect(Collectors.toList());
         return topLevelComments.stream()
                 .filter(Objects::nonNull)
@@ -111,7 +111,7 @@ public class CommentResource {
 //                .collect(Collectors.toList());
 //    }
 
-    List<NestedComment> getComments(String parentId) {
+    List<NestedComment> getComments(Long parentId) {
         List<Comment> comments = commentService.findByParentId(parentId);
 
         return comments.stream()
@@ -126,14 +126,15 @@ public class CommentResource {
     @Path("/comments/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public Comment findById(@PathParam("id") String id) {
-        return commentService.get(id);
+        return commentService.get(Long.parseLong(id));
     }
 
     @GET
     @Path("/nested-comments/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public NestedComment findNestedById(@PathParam("id") String id) {
-        return new NestedComment(commentService.get(id), getComments(id));
+        return new NestedComment(commentService.get(Long.parseLong(id)),
+                getComments(Long.parseLong(id)));
     }
 
     @POST
@@ -150,7 +151,7 @@ public class CommentResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Comment update(@PathParam("id") String id, Comment comment) {
-        return commentService.update(id, comment);
+        return commentService.update(Long.parseLong(id), comment);
     }
 
 
@@ -158,7 +159,7 @@ public class CommentResource {
     @Path("/comments/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     public void deletePost(@PathParam("id") String id) {
-        commentService.delete(id);
+        commentService.delete(Long.parseLong(id));
     }
 
 

@@ -1,5 +1,6 @@
 package org.anuran;
 
+import io.quarkus.runtime.util.StringUtil;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -17,8 +18,11 @@ public class TagResource {
     @GET
     @Path("/tags")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Tag> findAll() {
+    public List<Tag> findAll(@QueryParam("tagUrl") String tagUrl) {
 //        return tagService.findAll();
+        if (!StringUtil.isNullOrEmpty(tagUrl)) {
+            return tagService.findTagsByTagUrl(tagUrl);
+        }
         return tagService.findBySourceApp("BLOG");
     }
 

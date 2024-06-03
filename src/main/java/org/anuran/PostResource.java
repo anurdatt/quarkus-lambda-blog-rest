@@ -70,8 +70,22 @@ public class PostResource {
     @GET()
     @Path("/posts")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<PostWithTags> posts() {
-        List<Post> posts = postService.findAll();
+    public List<PostWithTags> posts(@QueryParam("blogUrl") String blogUrl,
+                                    @QueryParam("tagUrl") String tagUrl) {
+        List<Post> posts;
+        if (!StringUtil.isNullOrEmpty(blogUrl)) {
+            posts = postService.findPostsByBlogUrl(blogUrl);
+        } else if (!StringUtil.isNullOrEmpty(tagUrl)) {
+            posts = tagService.findTagsByTagUrl(tagUrl)
+                    .stream()
+                    .map(Tag::getId)
+                    .flatMap((tagId) -> postTagService.findByTagId(tagId).stream())
+                    .map(PostTag::getPostId).distinct()
+                    .map((postId) -> postService.get(postId))
+                    .collect(Collectors.toList());
+        } else {
+            posts = postService.findAll();
+        }
         return posts
                 .stream()
                 .map(p -> new PostWithTags(p, postTagService.findByPostId(p.getId())
@@ -95,11 +109,11 @@ public class PostResource {
     @Path("/posts/{id}/detail")
     @Produces(MediaType.APPLICATION_JSON)
     public PostWithTags getPost(@PathParam("id") String id) {
-        Post post = postService.get(id);
+        Post post = postService.get(Long.parseLong(id));
 
-        List<PostTag> postTags = postTagService.findByPostId(id);
+        List<PostTag> postTags = postTagService.findByPostId(Long.parseLong(id));
 
-        List<String> tagIds = postTags.stream().map(PostTag::getTagId).collect(Collectors.toList());
+        List<Long> tagIds = postTags.stream().map(PostTag::getTagId).collect(Collectors.toList());
 
         List<Tag> tags = tagIds.stream().map(tagId -> tagService.get(tagId))
                 .filter(Objects::nonNull)
@@ -115,7 +129,7 @@ public class PostResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional()
     public PostWithTags updatePost(@PathParam("id") String id, PostWithTags postWithTags) {
-        Post post = postService.update(id, postWithTags.post);
+        Post post = postService.update(Long.parseLong(id), postWithTags.post);
         postWithTags.tags.stream().forEachOrdered(tag -> {
             if (postTagService.findByPostIdAndTagId(post.getId(), tag.getId()).size() == 0) {
                 postTagService.add(new PostTag(post.getId(), tag.getId()));
@@ -166,7 +180,9 @@ public class PostResource {
     @DELETE()
     @Path("/posts/{id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Transactional()
     public void deletePost(@PathParam("id") String id) {
-        postService.delete(id);
+        postTagService.deleteByPostId(Long.parseLong(id));
+        postService.delete(Long.parseLong(id));
     }
 }

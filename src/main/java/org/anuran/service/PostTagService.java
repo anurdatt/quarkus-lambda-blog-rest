@@ -39,82 +39,74 @@ public class PostTagService {
         return postTagTable.scan().items().stream().collect(Collectors.toList());
     }
 
-    public List<PostTag> findByPostId(String postId) {
+    public List<PostTag> findByPostId(Long postId) {
         return postTagTable.scan(s -> s
                         .consistentRead(true)
                         .filterExpression(Expression.builder()
                                 .expression("postId = :postId")
                                 .expressionValues(Map.of(":postId", AttributeValue.builder()
-                                        .s(postId)
+                                        .n(String.valueOf(postId))
                                         .build()))
                                 .build()))
                 .items().stream().collect(Collectors.toList());
     }
 
-    public List<PostTag> findByTagId(String tagId) {
+    public List<PostTag> findByTagId(Long tagId) {
         return postTagTable.scan(s -> s
                         .consistentRead(true)
                         .filterExpression(Expression.builder()
                                 .expression("tagId = :tagId")
                                 .expressionValues(Map.of(":tagId", AttributeValue.builder()
-                                        .s(tagId)
+                                        .n(String.valueOf(tagId))
                                         .build()))
                                 .build()))
                 .items().stream().collect(Collectors.toList());
     }
 
-    public List<PostTag> findByPostIdAndTagId(String postId, String tagId) {
+    public List<PostTag> findByPostIdAndTagId(Long postId, Long tagId) {
         return postTagTable.scan(s -> s
                         .consistentRead(true)
                         .filterExpression(Expression.builder()
                                 .expression("postId = :postId and tagId = :tagId")
-                                .expressionValues(Map.of(":postId", AttributeValue.builder().s(postId).build(),
-                                        ":tagId", AttributeValue.builder().s(tagId).build()))
+                                .expressionValues(Map.of(":postId", AttributeValue.builder().n(String.valueOf(postId)).build(),
+                                        ":tagId", AttributeValue.builder().n(String.valueOf(tagId)).build()))
                                 .build()))
                 .items().stream().collect(Collectors.toList());
     }
 
     public PostTag add(PostTag postTag) {
-        int pinx = postTag.getPostId().lastIndexOf("-");
-        String pidInclude = postTag.getPostId();
-        if(pinx > 0) {
-            pidInclude = postTag.getPostId().substring(0, pinx);
-        }
-        int tinx = postTag.getTagId().lastIndexOf("-");
-        String tidInclude = postTag.getTagId();
-        if(tinx > 0) {
-            tidInclude = postTag.getTagId().substring(0, tinx);
-        }
+//        int pinx = postTag.getPostId().lastIndexOf("-");
+//        String pidInclude = postTag.getPostId();
+//        if(pinx > 0) {
+//            pidInclude = postTag.getPostId().substring(0, pinx);
+//        }
+//        int tinx = postTag.getTagId().lastIndexOf("-");
+//        String tidInclude = postTag.getTagId();
+//        if(tinx > 0) {
+//            tidInclude = postTag.getTagId().substring(0, tinx);
+//        }
         Long did = new Date().getTime();
-        postTag.setId(pidInclude + "-" + tidInclude + "-" + did);
+//        postTag.setId(pidInclude + "-" + tidInclude + "-" + did);
+        postTag.setId(did);
         postTagTable.putItem(postTag);
         return postTag;
     }
 
-    public PostTag deleteByPostId(String postId) {
-        return postTagTable.deleteItem(d -> d
-                .conditionExpression(Expression.builder()
-                        .expression("postId = :postId")
-                        .expressionValues(Map.of(":postId", AttributeValue.builder()
-                                .s(postId).build()))
-                        .build()));
-    }
-
-    public List<PostTag> deleteByTagId(String tagId) {
+//    public PostTag deleteByPostId(Long postId) {
 //        return postTagTable.deleteItem(d -> d
 //                .conditionExpression(Expression.builder()
-//                        .expression("#tagId = :tagId")
-//                        .expressionNames(Map.of("#tagId", "tagId"))
-//                        .expressionValues(Map.of(":tagId", AttributeValue.builder()
-//                                .s(tagId).build()))
+//                        .expression("postId = :postId")
+//                        .expressionValues(Map.of(":postId", AttributeValue.builder()
+//                                .n(String.valueOf(postId)).build()))
 //                        .build()));
+//    }
 
-
+    public List<PostTag> deleteByPostId(Long postId) {
         ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder()
                 .filterExpression(Expression.builder()
-                        .expression("#tid = :tid")
-                        .expressionNames(Map.of("#tid", "tagId"))
-                        .expressionValues(Map.of(":tid", AttributeValue.builder().s(tagId).build()))
+                        .expression("#pid = :pid")
+                        .expressionNames(Map.of("#pid", "postId"))
+                        .expressionValues(Map.of(":pid", AttributeValue.builder().n(String.valueOf(postId)).build()))
                         .build())
                 .build();
 
@@ -125,19 +117,28 @@ public class PostTagService {
         postTags.stream().forEachOrdered(pt -> postTagTable.deleteItem(pt));
 
         return postTags;
-//        DeleteItemEnhancedRequest deleteRequest = DeleteItemEnhancedRequest.builder()
-//                .conditionExpression(Expression.builder()
-//                        .expression("#tid = :tid")
-//                .expressionNames(Map.of("#tid", "tagId"))
-//                .expressionValues(Map.of(":tid", AttributeValue.builder().s(tagId).build()))
-//                .build()).build();
-
-//        return postTagTable.deleteItem(deleteRequest);
-
-
     }
 
-    public PostTag delete(String id) {
+    public List<PostTag> deleteByTagId(Long tagId) {
+
+        ScanEnhancedRequest scanEnhancedRequest = ScanEnhancedRequest.builder()
+                .filterExpression(Expression.builder()
+                        .expression("#tid = :tid")
+                        .expressionNames(Map.of("#tid", "tagId"))
+                        .expressionValues(Map.of(":tid", AttributeValue.builder().n(String.valueOf(tagId)).build()))
+                        .build())
+                .build();
+
+        List<PostTag> postTags = postTagTable.scan(scanEnhancedRequest).items()
+                .stream().collect(Collectors.toList());
+
+
+        postTags.stream().forEachOrdered(pt -> postTagTable.deleteItem(pt));
+
+        return postTags;
+    }
+
+    public PostTag delete(Long id) {
         Key partitionKey = Key.builder().partitionValue(id).build();
         return postTagTable.deleteItem(partitionKey);
     }

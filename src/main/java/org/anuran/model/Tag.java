@@ -8,28 +8,31 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 @RegisterForReflection
 @DynamoDbBean
 public class Tag {
-    String id;
+    Long id;
     String name;
+
+    String tagUrl;
     String sourceApp;
-    String parentId;
+    Long parentId;
 
 
     public Tag() {
     }
 
-    public Tag(String id, String name, String sourceApp, String parentId) {
+    public Tag(Long id, String name, String tagUrl, String sourceApp, Long parentId) {
         this.id = id;
         this.name = name;
+        this.tagUrl = tagUrl;
         this.sourceApp = sourceApp;
         this.parentId = parentId;
     }
 
     @DynamoDbPartitionKey
-    public String getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -41,6 +44,14 @@ public class Tag {
         this.name = name;
     }
 
+    public String getTagUrl() {
+        return tagUrl;
+    }
+
+    public void setTagUrl(String tagUrl) {
+        this.tagUrl = tagUrl;
+    }
+
     public String getSourceApp() {
         return sourceApp;
     }
@@ -49,11 +60,11 @@ public class Tag {
         this.sourceApp = sourceApp;
     }
 
-    public String getParentId() {
+    public Long getParentId() {
         return parentId;
     }
 
-    public void setParentId(String parentId) {
+    public void setParentId(Long parentId) {
         this.parentId = parentId;
     }
 }
