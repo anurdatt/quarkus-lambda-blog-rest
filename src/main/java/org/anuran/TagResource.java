@@ -18,12 +18,16 @@ public class TagResource {
     @GET
     @Path("/tags")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Tag> findAll(@QueryParam("tagUrl") String tagUrl) {
+    public List<Tag> findAll(@QueryParam("tagUrl") String tagUrl,
+                             @QueryParam("sourceApp") String sourceApp) {
 //        return tagService.findAll();
         if (!StringUtil.isNullOrEmpty(tagUrl)) {
             return tagService.findTagsByTagUrl(tagUrl);
         }
-        return tagService.findBySourceApp("BLOG");
+        if (!StringUtil.isNullOrEmpty(sourceApp)) {
+            return tagService.findBySourceApp(sourceApp);
+        }
+        return tagService.findAll();
     }
 
 
@@ -33,6 +37,8 @@ public class TagResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Tag add(Tag tag) {
 //        return tagService.add(tag);
+        if(!StringUtil.isNullOrEmpty(tag.getSourceApp()))
+            return tagService.add(tag);
         return tagService.addWithSourceApp(tag, "BLOG");
     }
 }

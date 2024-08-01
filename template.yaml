@@ -21,8 +21,6 @@
               TableName: !Ref TagDDBTable
           - DynamoDBCrudPolicy:
               TableName: !Ref PostTagDDBTable
-          - DynamoDBCrudPolicy:
-              TableName: !Ref CommentDDBTable
 
         Timeout: 150
         Events:
@@ -56,13 +54,6 @@
           Name: id
           Type: Number
 
-    CommentDDBTable:
-      Type: AWS::Serverless::SimpleTable
-      Properties:
-        TableName: Comment
-        PrimaryKey:
-          Name: id
-          Type: Number
   Outputs:
     QuarkusLambdaBlogRestApi:
       Description: URL for application
